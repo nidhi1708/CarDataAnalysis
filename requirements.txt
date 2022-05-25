@@ -1,0 +1,12 @@
+streamlit
+matplotlib
+plotly
+seaborn
+functools 
+requests
+streamlit_lottie 
+streamlit_pandas_profiling 
+streamlit.components.v1 
+pandas_profiling
+pickle
+sweetviz 
