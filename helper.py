@@ -18,6 +18,7 @@ def clean_data(df):
     df['City_Mileage']=df['City_Mileage'].apply(lambda x: str(x).replace('km/litre' , '') if 'km/litre' in str(x) else str(x))
     df['City_Mileage']=df['City_Mileage'].apply(lambda x: str(x).replace('-12.7' , '') if '-12.7' in str(x) else str(x))
     df['City_Mileage']=df['City_Mileage'].apply(lambda x: str(x).replace('26032' , '26.03') if '26032' in str(x) else str(x))
+    df['City_Mileage']=df['City_Mileage'].astype('float')
     df['Displacement']=df['Displacement'].apply(lambda x: str(x).replace('cc' , '') if 'cc' in str(x) else str(x))
     return df
 
@@ -87,3 +88,4 @@ def generate_pandas_profile_report(df):
 def generate_sweetviz_report(df):
     report = sv.analyze(df)
     return report
+   

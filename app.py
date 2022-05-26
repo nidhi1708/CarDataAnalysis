@@ -30,7 +30,7 @@ st.set_page_config(
 
 @st.experimental_memo
 def load_data():
-    df = pd.read_csv('cars_engage_new_1.csv')  # reading cars dataset
+    df = pd.read_csv('cars_engage_csv_3.csv')  # reading cars dataset
     final_df=helper.clean_data(df)
     return final_df
 
@@ -144,19 +144,10 @@ if user_menu=='Company-wise Analysis':
     company_selection = st.sidebar.multiselect('Company:', company_list, default=company_list)
     mask = final_df['Company'].isin(company_selection)
 
-    data_vs_model = helper.data_graph(final_df[mask], 'Company')
-    fig = px.bar(data_vs_model, x='Company', y="No of Models", title="Number of Model per Company",
-                 color_discrete_sequence=['#F63366'],
-                 template='plotly_white')
-    st.plotly_chart(fig)
-   
-
-    col_list = ['Price', 'Cylinders', 'Variant' , 'Seating_Capacity' , 'City_Mileage']
-    for col in col_list:
-        fig = px.scatter(final_df[mask], x='Company', y=col, title="Relationship between Company and " + col,
-                         color='Fuel_Type')
-        st.plotly_chart(fig)
-
+    st.header('Relation between Price , Displacement and Fuel type of Various Companies')
+    fig = px.scatter_3d(final_df[mask], x='Displacement', z='Price', y='Fuel_Type', color='Company')
+    fig.update_layout(showlegend=True, autosize=True)
+    st.plotly_chart(fig, use_container_width=True)
 
     fig, ax = plt.subplots(figsize=(10, 8))
     ax = sns.scatterplot(data=final_df[mask], x='Company', y='Price', hue='Body_Type', palette='viridis', alpha=.89,
@@ -169,10 +160,18 @@ if user_menu=='Company-wise Analysis':
     st.header('Relation between Price and Company')
     st.pyplot(fig)
 
-    st.header('Relation between Price , Displacement and Fuel type of Various Companies')
-    fig = px.scatter_3d(final_df[mask], x='Displacement', z='Price', y='Fuel_Type', color='Company')
-    fig.update_layout(showlegend=True, autosize=True)
-    st.plotly_chart(fig, use_container_width=True)
+    data_vs_model = helper.data_graph(final_df[mask], 'Company')
+    fig = px.bar(data_vs_model, x='Company', y="No of Models", title="Number of Model per Company",
+                 color_discrete_sequence=['#F63366'],
+                 template='plotly_white')
+    st.plotly_chart(fig)
+   
+
+    col_list = ['Price', 'Cylinders', 'Variant' , 'Seating_Capacity' , 'City_Mileage']
+    for col in col_list:
+        fig = px.scatter(final_df[mask], x='Company', y=col, title="Relationship between Company and " + col,
+                         color='Fuel_Type')
+        st.plotly_chart(fig)
 
     st.header('Relation between Width , length ,height and weigth of Cars of various Companies')
     fig = px.scatter(final_df[mask], x="Width", y="Length", color="Company", hover_data=['Height', 'Kerb_Weight'])
@@ -215,9 +214,9 @@ if user_menu=='Model-wise Comparision':
         #Extracting required row from dataset
         temp = helper.get_model_data(comp_df , selected_comp , selected_model , selected_price)
         temp_sec=helper.get_model_data(comp_df , selected_comp_sec , selected_model_sec , selected_price_sec)
-        temp_df=pd.concat([temp , temp_sec])
 
-        final__df = temp_df.dropna(axis='columns', how='all')
+        #Concating both the rows
+        final_df=pd.concat([temp , temp_sec])
         final_df = final_df.astype(str)
 
         col = final_df.columns.tolist()
@@ -236,13 +235,15 @@ if user_menu=='Model-wise Comparision':
 
 if user_menu=='Body Type Wise Analysis':
     st.title("Body Type Wise Analysis ")
-    st.image("Bugatti_Chiron.jpg")
+    st.image("images\Bugatti_Chiron.jpg")
  
     st.header("Top 5 Preferred Body Types")
     body_type_vs_model = df['Body_Type'].value_counts().reset_index()
     body_type_vs_model.rename(columns={'index': 'Body_Type', 'Body_Type': 'No of Models'}, inplace=True)
     st.table(body_type_vs_model.head())
 
+
+    #Asking the user to select Body_Type of cars , hence showing graphs according to that
     new_df = df.dropna(subset=['Body_Type', 'Company'])
     final_df = helper.temp_df(new_df)
     body_type_list = final_df['Body_Type'].unique().tolist()
@@ -270,8 +271,9 @@ if user_menu=='Body Type Wise Analysis':
 
 if user_menu=='Fuel Type Analysis':
     st.title("Fuel Type Wise Analysis")
-    st.image("Ferrari-812.jpg")
+    st.image("images\Ferrari-812.jpg")
 
+    #Asking the user to select Fuel_Type of cars , hence showing graphs according to that
     new_df = df.dropna(subset=['Fuel_Type', 'Company'])
     final_df = helper.temp_df(new_df)
     fuel_type_list = final_df['Fuel_Type'].unique().tolist()
@@ -299,7 +301,7 @@ if user_menu=='Fuel Type Analysis':
 
 if user_menu=='Price Wise Analysis':
     st.title("Price Wise Analysis")
-    st.image("bugatti-1.jpg")
+    st.image("images\Bugatti-1.jpg")
 
     new_df = df.dropna(subset=['Price', 'Company'])
     final_df = helper.temp_df(new_df)
@@ -325,7 +327,7 @@ if user_menu=='Price Wise Analysis':
     order=False
     if selected_sort=='Low  to High':
         order=True
-    final_df_new = final_df[['Company', 'Model', 'Price', 'Fuel_Type' , 'Displacement']].sort_values(by=['Price'],
+    final_df_new = final_df[['Company', 'Model', 'Price', 'Fuel_Type']].sort_values(by=['Price'],
                                                                                    ascending=order).reset_index().drop(
         ['index'], axis=1)
     st.dataframe(final_df_new)
@@ -431,7 +433,7 @@ if user_menu=='Browse Data':
 if user_menu=='Predict Price':
 
     st.title("Selling Price Predictor")
-    st.image("new-car-dealership1.jpg")
+    st.image("images\car-dealership1.jpg")
 
     st.subheader("Find the selling price for your Car:")
 
