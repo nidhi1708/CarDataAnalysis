@@ -52,7 +52,7 @@ st.sidebar.title("Cars Data Analysis")
 user_menu=st.sidebar.radio(
     'Select an Option',(
          'Overall Analysis' , 'Price Wise Analysis' , 'Model-wise Comparision' , 'Body Type Wise Analysis' ,
-        'Fuel Type Analysis' , 'Company-wise Analysis' , 'Predict Price' , 'Browse Data' , 'Plot Graphs'
+        'Fuel Type Analysis' , 'Company-wise Analysis' , 'Predict Price' , 'Browse Data' 
     )
 )
 
@@ -361,50 +361,57 @@ if user_menu=='Browse Data':
     data = st.file_uploader("Upload a Dataset", type=["csv", "txt"])
 
     if data is not None:
-        activities = ["EDA", "Pandas Profiling Report" , 'Sweetviz Report']
+        activities = ["EDA","Pandas Profiling Report" , 'Sweetviz Report']
         choice = st.sidebar.selectbox("Select Activities", activities)
         df = pd.read_csv(data)
 
         if choice == 'EDA':
             st.subheader("Exploratory Data Analysis")
+            col=df.columns.to_list()
             
             st.dataframe(df.head())
 
-            if st.checkbox("Show Shape"):
-                st.write(df.shape)
+            analyse=["Basic Features","Plot Charts" , "Pie Charts" , "Heatmaps & 3D Plots"]
+            feature=st.sidebar.selectbox("Choose an Option" , analyse)
 
-            if st.checkbox("Show Columns"):
-                all_columns = df.columns.to_list()
-                st.write(all_columns)
+            if feature=="Basic Features":
+                if st.checkbox("Show Shape"):
+                    st.write(df.shape)
 
-            if st.checkbox("Summary"):
-                st.write(df.describe())
+                if st.checkbox("Show Columns"):
+                    all_columns = df.columns.to_list()
+                    st.write(all_columns)
 
-            if st.checkbox("Show Selected Columns"):
-                all_columns = df.columns.to_list()
-                selected_columns = st.multiselect("Select Columns", all_columns)
-                new_df = df[selected_columns]
-                st.dataframe(new_df)
+                if st.checkbox("Summary"):
+                    st.write(df.describe())
 
-            if st.checkbox("Show Value Counts"):
-                st.write(df.iloc[:, -1].value_counts())
+                if st.checkbox("Show Selected Columns"):
+                    all_columns = df.columns.to_list()
+                    selected_columns = st.multiselect("Select Columns", all_columns)
+                    new_df = df[selected_columns]
+                    st.dataframe(new_df)
 
-            if st.checkbox("Correlation Plot(Matplotlib)"):
-                plt.matshow(df.corr())
-                st.pyplot()
+                if st.checkbox("Correlation Plot(Seaborn)"):
+                    fig, ax = plt.subplots(figsize=(16, 7))
+                    ax=sns.heatmap(df.corr(),cmap='rocket_r',fmt=".1f", annot=True)
+                    st.pyplot(fig)
 
-            if st.checkbox("Correlation Plot(Seaborn)"):
-                fig, ax = plt.subplots(figsize=(16, 7))
-                ax=sns.heatmap(df.corr(),cmap='rocket_r',fmt=".1f", annot=True)
-                st.pyplot(fig)
+                if st.checkbox("Value Count Plot"):
+                    selected_col = st.selectbox("Choose a col",col)
+                    df = df.dropna(subset=[selected_col]) 
+                    data_Graph = df[selected_col].value_counts().reset_index().sort_values('index')
+                    data_Graph.rename(columns={'index': selected_col, selected_col: 'Counts'}, inplace=True)
+                    fig = px.bar(data_Graph, x=selected_col, y='Counts', color_discrete_sequence=['#F63366'],template='plotly_white')
+                    st.plotly_chart(fig)
 
-            if st.checkbox("Plot Charts"):
-                col=df.columns.to_list()
+
+            if feature=="Plot Charts":
+                st.header("Basic Charts")
                 x_axis = st.selectbox("Choose x axis",col)
                 y_axis = st.selectbox("Choose y axis",col)
                 color_col=st.selectbox("Choose color col",col)
                 hover_cols=st.multiselect("Do you want to hover any data" , col)
-                plot_type=st.selectbox("Choose the plot type" , ['Scatter' , 'Line' , 'Bar' , 'Box'])
+                plot_type=st.selectbox("Choose the plot type" , ['Scatter' , 'Line' , 'Bar' , 'Box' , 'Violin'])
                 final_df = df.dropna(subset=[x_axis , y_axis , color_col])
                 if plot_type=='Scatter':
                     fig=px.scatter(final_df , x=x_axis , y=y_axis , color=color_col , hover_data=hover_cols)
@@ -413,12 +420,51 @@ if user_menu=='Browse Data':
                 if plot_type=='Box':
                     fig=px.box(final_df , x=x_axis , y=y_axis , color=color_col , hover_data=hover_cols)  
                 if plot_type=='Bar':
-                    fig=px.bar(final_df , x=x_axis , y=y_axis , color=color_col , hover_data=hover_cols)  
+                    fig=px.bar(final_df , x=x_axis , y=y_axis , color=color_col , hover_data=hover_cols) 
+                if plot_type=='Violin':
+                    fig=px.violin(final_df , x=x_axis , y=y_axis , color=color_col , hover_data=hover_cols)   
                 if st.button("Plot Chart"):     
+                    st.plotly_chart(fig)        
+
+            if feature=="Pie Charts":
+                st.header("Pie Charts")
+                temp=df.describe()
+                values_col=temp.columns.to_list()
+                x_axis = st.selectbox("Choose a value",values_col)
+                y_axis = st.selectbox("Choose the Category" , col)
+                hover_cols=st.multiselect("hover any data" , col)
+                fig=px.pie(df , values=x_axis , names=y_axis , hover_data=hover_cols)
+                fig.update_traces(textposition='inside' , textinfo='percent+label')
+                if st.button("Plot Pie Chart"):
+                    st.plotly_chart(fig)      
+
+            if feature=="Heatmaps & 3D Plots":
+                st.header("Heatmaps & 3D Plots")
+                x_axis = st.selectbox("Choose x-axis", col)
+                y_axis = st.selectbox("Choose y-axis" , col)
+                z_axis = st.selectbox("Choose z-axis" , col)
+                if st.checkbox('Plot Heatmap'):
+                    fig = px.density_heatmap(df, x=x_axis, y=y_axis, z=z_axis , marginal_x="histogram", marginal_y="histogram")
                     st.plotly_chart(fig)
-
-
-
+                if st.checkbox('Plot 3D graphs'):
+                    plot_type=st.selectbox("Choose the plot type" , ['Scatter' , 'Line'])
+                    new_col=df.columns.to_list()
+                    new_col.insert(0 , '-')
+                    color_col=st.selectbox('Choose a color col' , new_col)
+                    hover_cols=st.multiselect("Do you want to hover any data" , col)
+                    if plot_type=='Scatter':
+                        if color_col=='-':
+                            fig = px.scatter_3d(df, x=x_axis, y=y_axis, z=z_axis, hover_data=hover_cols)
+                        else:
+                            final_df = df.dropna(subset=[color_col])
+                            fig = px.scatter_3d(final_df, x=x_axis, y=y_axis, z=z_axis, color=color_col,hover_data=hover_cols)   
+                    if plot_type=='Line':
+                        if color_col=='-':
+                            fig = px.line_3d(df, x=x_axis, y=y_axis, z=z_axis, hover_data=hover_cols)
+                        else:
+                            final_df = df.dropna(subset=[color_col])
+                            fig = px.line_3d(final_df, x=x_axis, y=y_axis, z=z_axis,color=color_col,hover_data=hover_cols)    
+                    st.plotly_chart(fig)
 
         elif choice == 'Pandas Profiling Report':
             st.subheader("Automated EDA with Pandas Profiling")
