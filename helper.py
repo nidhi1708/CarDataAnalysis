@@ -19,7 +19,35 @@ def clean_data(df):
     df['City_Mileage']=df['City_Mileage'].apply(lambda x: str(x).replace('-12.7' , '') if '-12.7' in str(x) else str(x))
     df['City_Mileage']=df['City_Mileage'].apply(lambda x: str(x).replace('26032' , '26.03') if '26032' in str(x) else str(x))
     df['City_Mileage']=df['City_Mileage'].astype('float')
+
     df['Displacement']=df['Displacement'].apply(lambda x: str(x).replace('cc' , '') if 'cc' in str(x) else str(x))
+    df['Displacement']=df['Displacement'].astype('float')
+
+    df['Cylinders']=df['Cylinders'].fillna(4.0)
+
+    df['Length']=df['Length'].apply(lambda x: str(x).replace('mm' , '') if 'mm' in str(x) else str(x))
+    df['Length']=df['Length'].astype('float')
+
+    df['Height']=df['Height'].apply(lambda x: str(x).replace('mm' , '') if 'mm' in str(x) else str(x))
+    df['Height'].fillna('1387' ,inplace=True)
+    df['Height']=df['Height'].astype('float')
+
+    df['Width']=df['Width'].apply(lambda x: str(x).replace('mm' , '') if 'mm' in str(x) else str(x))
+    df['Width'].fillna('1770' , inplace=True)
+    df['Width']=df['Width'].astype('float')
+    
+    df['Fuel_Tank_Capacity']=df['Fuel_Tank_Capacity'].apply(lambda x: str(x).replace('litres' , '') if 'litres' in str(x) else str(x))
+    df['Fuel_Tank_Capacity']=df['Fuel_Tank_Capacity'].astype('float')
+
+    df['Kerb_Weight']=df['Kerb_Weight'].apply(lambda x: str(x).replace('kg' , '') if 'kg' in str(x) else str(x))
+    df['Kerb_Weight']=df['Kerb_Weight'].apply(lambda x: str(x).replace('1016-1043 ' , '1030') if '1016-1043 ' in str(x) else str(x))
+    df['Kerb_Weight']=df['Kerb_Weight'].apply(lambda x: str(x).replace('1053-1080 ' , '1067') if '1053-1080 ' in str(x) else str(x))
+    df['Kerb_Weight'].fillna('1387.30' , inplace=True)
+    df['Kerb_Weight']=df['Kerb_Weight'].astype('float')
+
+    df['Rear_Brakes']=df['Rear_Brakes'].fillna('Drum')
+    df['Front_Brakes']=df['Front_Brakes'].fillna('Ventilated Disc')
+
     return df
 
 @st.experimental_memo
@@ -31,7 +59,6 @@ def temp_df(df):
     df['Price'] = df['Price'].apply(lambda x: str(x).replace('Rs.', '') if 'Rs.' in str(x) else str(x))
     df['Price'] = df['Price'].apply(lambda x: str(x).replace(',', '') if ',' in str(x) else str(x))
     df['Price'] = df['Price'].apply(lambda x: int(x))
-    #df['Displacement'] = df['Displacement'].astype('str').str.replace('cc', '')
     return df
 
 

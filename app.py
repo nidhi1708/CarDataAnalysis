@@ -1,3 +1,4 @@
+from tkinter import Button
 from matplotlib.style import use
 import streamlit as st
 import pandas as pd
@@ -15,13 +16,13 @@ import streamlit.components.v1 as components
 import pickle
 import codecs
  
-
+#Function to generate sweetviz within our website
 def st_display_sweetviz(report_html , width=800,height=500):
 	report_file = codecs.open(report_html,'r')
 	page = report_file.read()
 	components.html(page,width=width,height=height,scrolling=True)
 
-
+#Setting Up the Page confriguration
 st.set_page_config(
     page_title="Data Analysis",
     layout="centered",
@@ -34,6 +35,7 @@ def load_data():
     final_df=helper.clean_data(df)
     return final_df
 
+#loading animation
 def load_lottieurl(url: str):
     r = requests.get(url)
     if r.status_code != 200:
@@ -42,7 +44,7 @@ def load_lottieurl(url: str):
 
 
 df=load_data()
-temp_df = helper.temp_df(df)
+temp_df = helper.temp_df(df)  # df after changes in Price column
 comp_df = helper.comp_df(df)  # df after removing rows which don't have a company name
 
 #Setting up the sidebar
@@ -50,7 +52,7 @@ st.sidebar.title("Cars Data Analysis")
 user_menu=st.sidebar.radio(
     'Select an Option',(
          'Overall Analysis' , 'Price Wise Analysis' , 'Model-wise Comparision' , 'Body Type Wise Analysis' ,
-        'Fuel Type Analysis' , 'Company-wise Analysis' , 'Predict Price' , 'Browse Data'
+        'Fuel Type Analysis' , 'Company-wise Analysis' , 'Predict Price' , 'Browse Data' , 'Plot Graphs'
     )
 )
 
@@ -92,7 +94,7 @@ if user_menu=='Overall Analysis':
 
     #Correlation plot
     st.title("Correlation Plot")
-    fig, ax = plt.subplots(figsize=(16, 7))
+    fig, ax = plt.subplots(figsize=(16, 16))
     ax = sns.heatmap(df.corr(),cmap='rocket_r',fmt=".2f", annot=True)
     st.pyplot(fig)
     st.write("From the heatmap we can see that The more the number of cylinders in a car, the more will be its displacement. Generally speaking, the higher an engine’s displacement the more power it can create. Similarly we can perform more analysis")
@@ -100,7 +102,7 @@ if user_menu=='Overall Analysis':
 
     #Common analysis
     #line charts
-    col=['Company' ,'Model' ,'Fuel_Type' ,'Body_Type' , 'Fuel_Tank_Capacity' , 'Cylinders' , 'Gears' , 'Kerb_Weight' , 'Seating_Capacity']
+    col=['Company' ,'Fuel_Type' ,'Body_Type' , 'Fuel_Tank_Capacity' , 'Cylinders' , 'Kerb_Weight' , 'Seating_Capacity']
     st.title("Common Analysis")
     for c in col:
         data_vs_model = helper.data_graph(df, c)
@@ -123,12 +125,10 @@ if user_menu=='Overall Analysis':
     st.header("Cars Count by Emission_Norm ")
     st.pyplot(fig)
 
+
+
 if user_menu=='Company-wise Analysis':
     st.title("Company Wise Analysis")
-    st.header("Top 5 Car Making Companies")
-    comp_vs_model = df['Company'].value_counts().reset_index()
-    comp_vs_model.rename(columns={'index': 'Company', 'Company': 'No of Models'}, inplace=True)
-    st.table(comp_vs_model.head())
 
     @st.experimental_singleton
     def load_animaton():
@@ -144,7 +144,13 @@ if user_menu=='Company-wise Analysis':
     company_selection = st.sidebar.multiselect('Company:', company_list, default=company_list)
     mask = final_df['Company'].isin(company_selection)
 
-    st.header('Relation between Price , Displacement and Fuel type of Various Companies')
+    st.header("Top Models of Selected Companies")
+    group_comp_df=final_df[mask].groupby('Company')
+    final_group_comp_df=group_comp_df[['Model' ,'Variant' ,'Price' , 'Fuel_Type' , 'Fuel_Tank_Capacity']]
+    final_comp_df=final_group_comp_df.max()
+    st.dataframe(final_comp_df)
+
+    st.subheader('Relation between Price , Displacement and Fuel type of Various Companies')
     fig = px.scatter_3d(final_df[mask], x='Displacement', z='Price', y='Fuel_Type', color='Company')
     fig.update_layout(showlegend=True, autosize=True)
     st.plotly_chart(fig, use_container_width=True)
@@ -174,10 +180,13 @@ if user_menu=='Company-wise Analysis':
         st.plotly_chart(fig)
 
     st.header('Relation between Width , length ,height and weigth of Cars of various Companies')
-    fig = px.scatter(final_df[mask], x="Width", y="Length", color="Company", hover_data=['Height', 'Kerb_Weight'])
+    fig = px.scatter(final_df[mask], x="Width", y="Length", color="Company", hover_data=['Height', 'Price'])
     st.plotly_chart(fig)
 
-
+    st.header('Relation between Front & Rear Brakes of Cars of various Companies')
+    fig = px.scatter(final_df[mask], x="Company", y=["Front_Brakes", "Rear_Brakes"])
+    fig.update_layout(autosize=False, width=800, height=600)
+    st.plotly_chart(fig)
 
 
 if user_menu=='Model-wise Comparision':
@@ -237,12 +246,6 @@ if user_menu=='Body Type Wise Analysis':
     st.title("Body Type Wise Analysis ")
     st.image("images\Bugatti_Chiron.jpg")
  
-    st.header("Top 5 Preferred Body Types")
-    body_type_vs_model = df['Body_Type'].value_counts().reset_index()
-    body_type_vs_model.rename(columns={'index': 'Body_Type', 'Body_Type': 'No of Models'}, inplace=True)
-    st.table(body_type_vs_model.head())
-
-
     #Asking the user to select Body_Type of cars , hence showing graphs according to that
     new_df = df.dropna(subset=['Body_Type', 'Company'])
     final_df = helper.temp_df(new_df)
@@ -250,18 +253,25 @@ if user_menu=='Body Type Wise Analysis':
     body_type_selection = st.sidebar.multiselect('Body Type:',body_type_list,default=body_type_list)
     mask = final_df['Body_Type'].isin(body_type_selection)
 
+    st.header("Top Models of Selected Body Types")
+    group_comp_df=final_df[mask].groupby('Body_Type')
+    final_group_comp_df=group_comp_df[['Company', 'Model' ,'Variant' ,'Price' , 'Fuel_Type']]
+    final_comp_df=final_group_comp_df.max()
+    st.dataframe(final_comp_df)
+
     data_vs_model = helper.data_graph(final_df[mask], 'Body_Type')
     fig = px.bar(data_vs_model, x='Body_Type', y="No of Models" , title="Number of Model per Body Type", color_discrete_sequence=['#F63366'],
                          template='plotly_white')
     st.plotly_chart(fig)
 
+
     col_list = ['Price', 'Fuel_Type', 'Cylinders', 'Variant' , 'Seating_Capacity' , 'City_Mileage']
     for col in col_list:
-        fig = px.scatter(final_df[mask], x='Body_Type', y=col,title="Relationship between Body Type and " +col ,color='Company')
+        fig = px.box(final_df[mask], x='Body_Type', y=col,title="Relationship between Body Type and " +col ,color='Company')
         st.plotly_chart(fig)
 
 
-    col_list=['Model' , 'Company']
+    col_list=['Doors' ,'Model' , 'Company']
     for col in col_list:
         fig = px.scatter(final_df[mask], x="Body_Type", y=col,title="Body Type Vs "+col, color_discrete_sequence=['#F63366'],
                          template='plotly_white')
@@ -280,8 +290,9 @@ if user_menu=='Fuel Type Analysis':
     fuel_type_selection = st.sidebar.multiselect('Fuel Type:',fuel_type_list,default=fuel_type_list)
     mask = final_df['Fuel_Type'].isin(fuel_type_selection)
 
+
     data_vs_model = helper.data_graph(final_df[mask], 'Fuel_Type')
-    fig = px.bar(data_vs_model, x='Fuel_Type', y="No of Models" , title="Number of Model per Fuel Type", color_discrete_sequence=['#F63366'],
+    fig = px.line(data_vs_model, x='Fuel_Type', y="No of Models" , title="Number of Model per Fuel Type", color_discrete_sequence=['#F63366'],
                          template='plotly_white')
     st.plotly_chart(fig)
 
@@ -387,19 +398,24 @@ if user_menu=='Browse Data':
                 ax=sns.heatmap(df.corr(),cmap='rocket_r',fmt=".1f", annot=True)
                 st.pyplot(fig)
 
-            if st.checkbox("Plot of Value Counts"):
-                st.text("Value Counts By Target")
-                all_columns_names = df.columns.tolist()
-                primary_col = st.selectbox("Primary Columm to GroupBy",all_columns_names)
-                selected_columns_names = st.multiselect("Select Required Columns",all_columns_names)
-                if st.button("Plot"):
-                    st.text("Generate Plot")
-                    if selected_columns_names:
-                        vc_plot = df.groupby(primary_col)[selected_columns_names].count()
-                    else:
-                        vc_plot = df.iloc[:,-1].value_counts()
-                    st.write(vc_plot.plot(kind="bar"))
-                    st.pyplot()
+            if st.checkbox("Plot Charts"):
+                col=df.columns.to_list()
+                x_axis = st.selectbox("Choose x axis",col)
+                y_axis = st.selectbox("Choose y axis",col)
+                color_col=st.selectbox("Choose color col",col)
+                hover_cols=st.multiselect("Do you want to hover any data" , col)
+                plot_type=st.selectbox("Choose the plot type" , ['Scatter' , 'Line' , 'Bar' , 'Box'])
+                final_df = df.dropna(subset=[x_axis , y_axis , color_col])
+                if plot_type=='Scatter':
+                    fig=px.scatter(final_df , x=x_axis , y=y_axis , color=color_col , hover_data=hover_cols)
+                if plot_type=='Line':
+                    fig=px.line(final_df , x=x_axis , y=y_axis , color=color_col , hover_data=hover_cols)
+                if plot_type=='Box':
+                    fig=px.box(final_df , x=x_axis , y=y_axis , color=color_col , hover_data=hover_cols)  
+                if plot_type=='Bar':
+                    fig=px.bar(final_df , x=x_axis , y=y_axis , color=color_col , hover_data=hover_cols)  
+                if st.button("Plot Chart"):     
+                    st.plotly_chart(fig)
 
 
 
@@ -481,3 +497,6 @@ if user_menu=='Predict Price':
                 st.success("You can sell the car for {} lakhs 🙌".format(output))
         except:
             st.warning("Opps!! Something went wrong\nTry again")
+
+
+
