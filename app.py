@@ -430,7 +430,6 @@ elif st.session_state.kind_of_analysis=='Predict Price':
             st.warning("Opps!! Something went wrong\nTry again")
 
 
-
 else:
     st.title("Data Analysis") #Doing EDA on user provided dataset
 
@@ -451,7 +450,7 @@ else:
             
             st.dataframe(df.head())
 
-            analyse=["Basic Features","2D & Animated Plots" , "Pie Charts" , "Heatmaps, 3D & Ternary Plots"]
+            analyse=["Basic Features","2D , Animated & Facet Plots" , "Pie Charts" , "Heatmaps, 3D & Ternary Plots"]
             feature=st.sidebar.selectbox("Choose an Option" , analyse)
 
             if feature=="Basic Features":
@@ -485,7 +484,7 @@ else:
                     st.plotly_chart(fig)
 
 
-            if feature=="2D & Animated Plots":
+            if feature=="2D , Animated & Facet Plots":
                 st.header("Basic Charts")
                 x_axis = st.selectbox("Choose x axis",col)
                 y_axis = st.selectbox("Choose y axis",col)
@@ -518,6 +517,36 @@ else:
                             fig=px.bar(new_df, x=x_axis, y=y_axis, animation_frame=animated_frame, 
                                color=color_col, log_x=True)
                         st.plotly_chart(fig)
+
+
+                if st.checkbox('Facet Plot'):
+                    facet_row_col=st.selectbox('Choose Facet row' , col)
+                    facet_column_col=st.selectbox('Choose Facet column' , col)    
+             
+                    if st.button('Plot Facet'):
+                        new_df=final_df.dropna(subset=[facet_column_col , facet_row_col])
+
+                        #Checking the length of unique values of facet row and col if greater than 3 then we will not the graph
+                        temp_row=new_df[facet_row_col].value_counts()
+                        row_size=temp_row.shape[0]
+                        temp_col=new_df[facet_column_col].value_counts()
+                        col_size=temp_col.shape[0]
+
+                        if (row_size>3 and col_size>3):
+                            st.info('Facet Row and Columns have large number of unique values , try using different columns')
+                        elif row_size>3:
+                            st.info('Facet row is not present because of high number of unique values in it , choose another row value')
+                            fig=px.scatter(new_df, x=x_axis, y=y_axis, facet_col=facet_column_col,color=color_col)
+                            st.plotly_chart(fig)
+                        elif col_size>3:
+                            st.info('Facet column is not present because of high number of unique values in it , choose another column value')
+                            fig=px.scatter(new_df, x=x_axis, y=y_axis, facet_row=facet_row_col,color=color_col)
+                            st.plotly_chart(fig)
+                        else:
+                            fig=px.scatter(new_df, x=x_axis, y=y_axis, facet_row=facet_row_col , facet_col=facet_column_col,color=color_col)    
+                            st.plotly_chart(fig)
+
+
 
             if feature=="Pie Charts":
                 st.header("Pie Charts")
