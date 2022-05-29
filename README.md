@@ -57,3 +57,9 @@ Start the server
   streamlit run app.py
 ```
 
+## Automated EDA Analysis
+- For small Datasets Automated EDA & Pandas Profile Report are best
+
+- For better Automated EDA Analysis choose columns wisely
+
+- For Big Datasets Sweetviz Report is best
