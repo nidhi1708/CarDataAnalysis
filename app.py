@@ -133,7 +133,7 @@ if st.session_state.kind_of_analysis=='Overall Analysis':
     st.pyplot(fig)
 
 
-
+#In Company Wise Analysis analysing different filds w.r.t Company
 elif st.session_state.kind_of_analysis=='Company-wise Analysis':
     st.title("Company Wise Analysis")
 
@@ -145,18 +145,21 @@ elif st.session_state.kind_of_analysis=='Company-wise Analysis':
 
     st_lottie(load_animaton(), key="car secondary")
 
+    #User selecting required Companies for comparisions
     new_df = df.dropna(subset=['Company'])
     final_df = helper.temp_df(new_df)
     company_list = final_df['Company'].unique().tolist()
     company_selection = st.sidebar.multiselect('Company:', company_list, default=company_list)
     mask = final_df['Company'].isin(company_selection)
 
+    #printing the top models of select companies
     st.header("Top Models of Selected Companies")
     group_comp_df=final_df[mask].groupby('Company')
     final_group_comp_df=group_comp_df[['Model' ,'Variant' ,'Price' , 'Fuel_Type' , 'Fuel_Tank_Capacity']]
     final_comp_df=final_group_comp_df.max()
     st.dataframe(final_comp_df)
 
+    #Plotting Charts
     st.subheader('Relation between Price , Displacement and Fuel type of Various Companies')
     fig = px.scatter_3d(final_df[mask], x='Displacement', z='Price', y='Fuel_Type', color='Company')
     fig.update_layout(showlegend=True, autosize=True)
@@ -195,7 +198,7 @@ elif st.session_state.kind_of_analysis=='Company-wise Analysis':
     fig.update_layout(autosize=False, width=800, height=600)
     st.plotly_chart(fig)
 
-
+#Comparing Models compares two models based on the given features 
 elif st.session_state.kind_of_analysis=='Model-wise Comparision':
     st.title("Model-wise Comparision")
 
@@ -249,6 +252,7 @@ elif st.session_state.kind_of_analysis=='Model-wise Comparision':
         st.table(res_df_trans)
 
 
+#Variation of Body Type w.r.t various fields
 elif st.session_state.kind_of_analysis=='Body Type Wise Analysis':
     st.title("Body Type Wise Analysis ")
     st.image("images\Bugatti_Chiron.jpg")
@@ -285,7 +289,7 @@ elif st.session_state.kind_of_analysis=='Body Type Wise Analysis':
         st.plotly_chart(fig)
 
 
-
+#Fuel_Type wise analysis analyses fuel_type changes depending on various feilds 
 elif st.session_state.kind_of_analysis=='Fuel Type Analysis':
     st.title("Fuel Type Wise Analysis")
     st.image("images\Ferrari-812.jpg")
@@ -316,16 +320,19 @@ elif st.session_state.kind_of_analysis=='Fuel Type Analysis':
         st.plotly_chart(fig)
 
 
-
+#Price wise analysis analyses prices of the cars depending on various feilds 
 elif st.session_state.kind_of_analysis=='Price Wise Analysis':
     st.title("Price Wise Analysis")
     st.image("images\Bugatti-1.jpg")
 
     new_df = df.dropna(subset=['Price', 'Company'])
     final_df = helper.temp_df(new_df)
+
+    #Allowing the user to select a budget and according to that we showing the plots , initially the budget is 0-max price
     price_list = ['Overall','1-5 Lakh' , '5-10 lakh' , '10-15 Lakh' , '15-20 Lakh' , '20-35 Lakh' , '35-50 Lakh' , 'Luxury Cars']
     selected_price = st.sidebar.selectbox('Select Your Budget',price_list)
-
+    
+    #Getting the required Dataset based on given budget
     if selected_price==price_list[1]:
         final_df=helper.sort_via_price(final_df , 0 , 500000)
     if selected_price==price_list[2]:
@@ -340,6 +347,8 @@ elif st.session_state.kind_of_analysis=='Price Wise Analysis':
         final_df = helper.sort_via_price(final_df, 3500000, 5000000)
     if selected_price==price_list[7]:
         final_df=final_df[final_df['Price']>5000000]
+
+     #Plotting   
 
     selected_sort=st.selectbox('Sort by', ['High to Low' , 'Low  to High'])
     order=False
@@ -364,6 +373,7 @@ elif st.session_state.kind_of_analysis=='Price Wise Analysis':
         st.plotly_chart(fig)
 
 
+#Predicting Price Using RandomForest as it is most accurate one 
 elif st.session_state.kind_of_analysis=='Predict Price':
 
     st.title("Selling Price Predictor")
@@ -372,6 +382,8 @@ elif st.session_state.kind_of_analysis=='Predict Price':
     st.subheader("Find the selling price for your Car:")
 
     model = pickle.load(open('RF_price_predicting_model.pkl','rb'))
+
+    #Taking User Details like year , present price , fuel type etc and predicting the price accordingly
     years = st.number_input('In which year car was purchased ?',1990, 2021, step=1, key ='year')
     Years_old = 2021-years
 
@@ -404,6 +416,7 @@ elif st.session_state.kind_of_analysis=='Predict Price':
     else:
         Transmission_Mannual=0
 
+    #Predicting selling price according to the filled data
     if st.button("Estimate Price", key='predict'):
         try:
             Model = model  #get_model()
@@ -419,13 +432,18 @@ elif st.session_state.kind_of_analysis=='Predict Price':
 
 
 else:
-    st.title("Data Analysis")
+    st.title("Data Analysis") #Doing EDA on user provided dataset
+
     data = st.file_uploader("Upload a Dataset", type=["csv", "txt"])
 
     if data is not None:
         activities = ["EDA","Pandas Profiling Report" , 'Sweetviz Report']
         choice = st.sidebar.selectbox("Select Activities", activities)
         df = pd.read_csv(data)
+
+        # In EDA we are going to show some general analysis and some plots 
+        # These plots are going to visualize the Dataset more effectively and Quickly 
+        # So I have included some visuals here like Animated Plots , 3D , 2D , Heatmaps etc
 
         if choice == 'EDA':
             st.subheader("Exploratory Data Analysis")
@@ -548,6 +566,8 @@ else:
                     fig = px.scatter_ternary(df, a=x_axis, b=y_axis, c=z_axis)
                     st.plotly_chart(fig)
 
+
+        #Inbuilt python Library which generate automated EDA analysis
         elif choice == 'Pandas Profiling Report':
             st.subheader("Automated EDA with Pandas Profiling")
             st.write("Pandas Profiling helps in generating an Automated Exploratory Data Analysis for small Datasets")
@@ -559,7 +579,7 @@ else:
                     except:
                         st.warning("Opps!! Something went wrong\nTry again with small data set")    
             
-        
+        #Sweetviz report is best to analyse large Datasets
         elif choice=='Sweetviz Report':
             st.subheader("Automated EDA with Sweetviz")
             st.write("Sweetviz helps in generating an Automated Exploratory Data Analysis for small Datasets as well as large Datasets")
