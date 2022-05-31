@@ -465,7 +465,7 @@ else:
                     try:
                         st.write(df.describe())
                     except:
-                        st.error("df.describe() cannot be performed on the given Dataset")
+                        st.warning("df.describe() cannot be performed on the given Dataset")
 
                 if st.checkbox("Show Selected Columns"):
                     all_columns = df.columns.to_list()
@@ -479,7 +479,7 @@ else:
                        ax=sns.heatmap(df.corr(),cmap='rocket_r',fmt=".1f", annot=True)
                        st.pyplot(fig)
                     except:
-                        st.error('Correlation Plot cannot be performed on the given Dataset')
+                        st.warning('Correlation Plot cannot be performed on the given Dataset')
 
                 if st.checkbox("Value Count Plot"):
                     selected_col = st.selectbox("Choose a col",col)
@@ -539,13 +539,13 @@ else:
                         col_size=temp_col.shape[0]
 
                         if (row_size>3 and col_size>3):
-                            st.error('Facet Row and Columns have large number of unique values , try using different columns')
+                            st.warning('Facet Row and Columns have large number of unique values , try using different columns')
                         elif row_size>3:
-                            st.error('Facet row is not present because of high number of unique values in it , choose another row value')
+                            st.warning('Facet row is not present because of high number of unique values in it , choose another row value')
                             fig=px.scatter(new_df, x=x_axis, y=y_axis, facet_col=facet_column_col,color=color_col)
                             st.plotly_chart(fig)
                         elif col_size>3:
-                            st.error('Facet column is not present because of high number of unique values in it , choose another column value')
+                            st.warning('Facet column is not present because of high number of unique values in it , choose another column value')
                             fig=px.scatter(new_df, x=x_axis, y=y_axis, facet_row=facet_row_col,color=color_col)
                             st.plotly_chart(fig)
                         else:
@@ -556,15 +556,18 @@ else:
 
             if feature=="Pie Charts":
                 st.header("Pie Charts")
-                temp=df.describe()
-                values_col=temp.columns.to_list()
-                x_axis = st.selectbox("Choose a value",values_col)
-                y_axis = st.selectbox("Choose the Category" , col)
-                hover_cols=st.multiselect("hover any data" , col)
-                fig=px.pie(df , values=x_axis , names=y_axis , hover_data=hover_cols)
-                fig.update_traces(textposition='inside' , textinfo='percent+label')
-                if st.button("Plot Pie Chart"):
-                    st.plotly_chart(fig)      
+                try:
+                   temp=df.describe()
+                   values_col=temp.columns.to_list()
+                   x_axis = st.selectbox("Choose a value",values_col)
+                   y_axis = st.selectbox("Choose the Category" , col)
+                   hover_cols=st.multiselect("hover any data" , col)
+                   fig=px.pie(df , values=x_axis , names=y_axis , hover_data=hover_cols)
+                   fig.update_traces(textposition='inside' , textinfo='percent+label')
+                   if st.button("Plot Pie Chart"):
+                      st.plotly_chart(fig)   
+                except:
+                    st.warning('Try using different columns!')   
 
             if feature=="Heatmaps, 3D & Ternary Plots":
                 st.header("Heatmaps & 3D Plots")
