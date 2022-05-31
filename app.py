@@ -462,7 +462,10 @@ else:
                     st.write(all_columns)
 
                 if st.checkbox("Summary"):
-                    st.write(df.describe())
+                    try:
+                        st.write(df.describe())
+                    except:
+                        st.error("df.describe() cannot be performed on the given Dataset")
 
                 if st.checkbox("Show Selected Columns"):
                     all_columns = df.columns.to_list()
@@ -471,9 +474,12 @@ else:
                     st.dataframe(new_df)
 
                 if st.checkbox("Correlation Plot(Seaborn)"):
-                    fig, ax = plt.subplots(figsize=(16, 7))
-                    ax=sns.heatmap(df.corr(),cmap='rocket_r',fmt=".1f", annot=True)
-                    st.pyplot(fig)
+                    try:
+                       fig, ax = plt.subplots(figsize=(16, 7))
+                       ax=sns.heatmap(df.corr(),cmap='rocket_r',fmt=".1f", annot=True)
+                       st.pyplot(fig)
+                    except:
+                        st.error('Correlation Plot cannot be performed on the given Dataset')
 
                 if st.checkbox("Value Count Plot"):
                     selected_col = st.selectbox("Choose a col",col)
@@ -533,13 +539,13 @@ else:
                         col_size=temp_col.shape[0]
 
                         if (row_size>3 and col_size>3):
-                            st.info('Facet Row and Columns have large number of unique values , try using different columns')
+                            st.error('Facet Row and Columns have large number of unique values , try using different columns')
                         elif row_size>3:
-                            st.info('Facet row is not present because of high number of unique values in it , choose another row value')
+                            st.error('Facet row is not present because of high number of unique values in it , choose another row value')
                             fig=px.scatter(new_df, x=x_axis, y=y_axis, facet_col=facet_column_col,color=color_col)
                             st.plotly_chart(fig)
                         elif col_size>3:
-                            st.info('Facet column is not present because of high number of unique values in it , choose another column value')
+                            st.error('Facet column is not present because of high number of unique values in it , choose another column value')
                             fig=px.scatter(new_df, x=x_axis, y=y_axis, facet_row=facet_row_col,color=color_col)
                             st.plotly_chart(fig)
                         else:
