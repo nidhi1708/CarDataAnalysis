@@ -13,6 +13,8 @@ from streamlit_pandas_profiling import st_profile_report
 import streamlit.components.v1 as components
 import pickle
 import codecs
+import requests
+
 
 #lottie animition urls for different user interfaces
 body_type_animation='https://assets5.lottiefiles.com/packages/lf20_fdxsy2co.json'
@@ -23,6 +25,20 @@ company_type_animation='https://assets4.lottiefiles.com/private_files/lf30_zcwz0
 predict_price_animation='https://assets1.lottiefiles.com/packages/lf20_3x67gx4y.json'
 model_animation='https://assets1.lottiefiles.com/packages/lf20_5aaicf2r.json'
 browse_data_animation='https://assets1.lottiefiles.com/packages/lf20_xmkgn4jj.json'
+
+#loading animation
+def load_lottieurl(url: str):
+    r = requests.get(url)
+    if r.status_code != 200:
+        return None
+    return r.json()
+
+        
+@st.experimental_singleton
+def load_animaton(str):
+    lottie_url_type = str
+    lottie_type = load_lottieurl(lottie_url_type)
+    return lottie_type
 
  
 #Function to generate sweetviz within our website
