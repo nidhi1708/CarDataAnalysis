@@ -8,12 +8,22 @@ from matplotlib import pyplot as plt
 import plotly.figure_factory as ff
 from functools import cache
 import helper
-import requests
 from streamlit_lottie import st_lottie
 from streamlit_pandas_profiling import st_profile_report
 import streamlit.components.v1 as components
 import pickle
 import codecs
+
+#lottie animition urls for different user interfaces
+body_type_animation='https://assets5.lottiefiles.com/packages/lf20_fdxsy2co.json'
+price_type_animation='https://assets7.lottiefiles.com/packages/lf20_b4yychpi.json'
+fuel_type_animation='https://assets8.lottiefiles.com/private_files/lf30_vdqxTM.json'
+overall_animation_car='https://assets10.lottiefiles.com/packages/lf20_asjtnqce.json'
+company_type_animation='https://assets4.lottiefiles.com/private_files/lf30_zcwz0fha.json'
+predict_price_animation='https://assets1.lottiefiles.com/packages/lf20_3x67gx4y.json'
+model_animation='https://assets1.lottiefiles.com/packages/lf20_5aaicf2r.json'
+browse_data_animation='https://assets1.lottiefiles.com/packages/lf20_xmkgn4jj.json'
+
  
 #Function to generate sweetviz within our website
 def st_display_sweetviz(report_html , width=800,height=500):
@@ -33,13 +43,6 @@ def load_data():
     df = pd.read_csv('cars_engage_csv_3.csv')  # reading cars dataset
     final_df=helper.clean_data(df)
     return final_df
-
-#loading animation
-def load_lottieurl(url: str):
-    r = requests.get(url)
-    if r.status_code != 200:
-        return None
-    return r.json()
 
 
 df=load_data()
@@ -74,15 +77,9 @@ if st.session_state.kind_of_analysis=='Overall Analysis':
 
     with c2:
         st.header("Models: " + str(models))
-
-    @st.experimental_singleton
-    def load_animaton():
-        lottie_url_car_overall = "https://assets10.lottiefiles.com/packages/lf20_asjtnqce.json"
-        lottie_main = load_lottieurl(lottie_url_car_overall)
-        return lottie_main
-
-
-    st_lottie(load_animaton(), key="car main")
+    
+    # creating lottie animations
+    st_lottie(helper.load_animaton(overall_animation_car), key="car  overall")
 
     st.header("Different Models made by the companies with there Body type")
     fig = px.scatter(temp_df, x="Company", y="Model", color="Body_Type", hover_data=['Price'])
@@ -103,7 +100,7 @@ if st.session_state.kind_of_analysis=='Overall Analysis':
     fig, ax = plt.subplots(figsize=(16, 16))
     ax = sns.heatmap(df.corr(),cmap='rocket_r',fmt=".2f", annot=True)
     st.pyplot(fig)
-    st.write("From the heatmap we can see that The more the number of cylinders in a car, the more will be its displacement. Generally speaking, the higher an engine’s displacement the more power it can create. Similarly we can perform more analysis")
+    st.write("From the heatmap we can see that The more the number of cylinders in a car, the more will be its displacement. Generally speaking, the higher an engine’s displacement the more power it can create. Similarly we can perform more analysis. Here unnamed:0 is by default which stands for number of models.")
      
 
     #Common analysis
@@ -135,14 +132,9 @@ if st.session_state.kind_of_analysis=='Overall Analysis':
 #In Company Wise Analysis analysing different filds w.r.t Company
 elif st.session_state.kind_of_analysis=='Company-wise Analysis':
     st.title("Company Wise Analysis")
-
-    @st.experimental_singleton
-    def load_animaton():
-        lottie_url_car_comp = "https://assets4.lottiefiles.com/private_files/lf30_zcwz0fha.json"
-        lottie_sec = load_lottieurl(lottie_url_car_comp)
-        return lottie_sec
-
-    st_lottie(load_animaton(), key="car secondary")
+ 
+    # creating lottie animations
+    st_lottie(helper.load_animaton(company_type_animation), key="car company type")
 
     #User selecting required Companies for comparisions
     new_df = df.dropna(subset=['Company'])
@@ -250,13 +242,19 @@ elif st.session_state.kind_of_analysis=='Model-wise Comparision':
         res_df_trans=res_df.T
         st.table(res_df_trans)
 
+    else:
+        # creating lottie animations
+        st_lottie(helper.load_animaton(model_animation), key="car model type")
 
 #Variation of Body Type w.r.t various fields
 elif st.session_state.kind_of_analysis=='Body Type Wise Analysis':
     st.title("Body Type Wise Analysis ")
-    st.image("images\Bugatti_Chiron.jpg")
- 
-    #Asking the user to select Body_Type of cars , hence showing graphs according to that
+    #st.image("images\Bugatti_Chiron.jpg")
+
+    # creating lottie animations
+    st_lottie(helper.load_animaton(body_type_animation), key="car body type")
+
+   #Asking the user to select Body_Type of cars , hence showing graphs according to that
     new_df = df.dropna(subset=['Body_Type', 'Company'])
     final_df = helper.temp_df(new_df)
     body_type_list = final_df['Body_Type'].unique().tolist()
@@ -291,7 +289,10 @@ elif st.session_state.kind_of_analysis=='Body Type Wise Analysis':
 #Fuel_Type wise analysis analyses fuel_type changes depending on various feilds 
 elif st.session_state.kind_of_analysis=='Fuel Type Analysis':
     st.title("Fuel Type Wise Analysis")
-    st.image("images\Ferrari-812.jpg")
+    #st.image("images\Ferrari-812.jpg")
+
+    # creating lottie animations
+    st_lottie(helper.load_animaton(fuel_type_animation), key="car fuel type")
 
     #Asking the user to select Fuel_Type of cars , hence showing graphs according to that
     new_df = df.dropna(subset=['Fuel_Type', 'Company'])
@@ -322,7 +323,9 @@ elif st.session_state.kind_of_analysis=='Fuel Type Analysis':
 #Price wise analysis analyses prices of the cars depending on various feilds 
 elif st.session_state.kind_of_analysis=='Price Wise Analysis':
     st.title("Price Wise Analysis")
-    st.image("images\Bugatti-1.jpg")
+    
+    # creating lottie animations
+    st_lottie(helper.load_animaton(price_type_animation), key="car price type")
 
     new_df = df.dropna(subset=['Price', 'Company'])
     final_df = helper.temp_df(new_df)
@@ -376,7 +379,9 @@ elif st.session_state.kind_of_analysis=='Price Wise Analysis':
 elif st.session_state.kind_of_analysis=='Predict Price':
 
     st.title("Selling Price Predictor")
-    st.image("images\car-dealership1.jpg")
+
+    # creating lottie animations
+    st_lottie(helper.load_animaton(predict_price_animation), key="car price predict")
 
     st.subheader("Find the selling price for your Car:")
 
@@ -433,6 +438,9 @@ else:
     st.title("Data Analysis") #Doing EDA on user provided dataset
 
     data = st.file_uploader("Upload a Dataset", type=["csv", "txt"])
+    if data is None:
+        # creating lottie animations
+        st_lottie(helper.load_animaton(browse_data_animation), key="browse data animation")
 
     if data is not None:
         activities = ["EDA","Pandas Profiling Report" , 'Sweetviz Report']

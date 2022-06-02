@@ -2,6 +2,7 @@ import streamlit as st
 from functools import cache
 from pandas_profiling import ProfileReport
 import sweetviz as sv
+import requests
 
 @st.experimental_memo
 def data_graph(df , col):
@@ -115,4 +116,18 @@ def generate_pandas_profile_report(df):
 def generate_sweetviz_report(df):
     report = sv.analyze(df)
     return report
+
+#loading animation
+def load_lottieurl(url: str):
+    r = requests.get(url)
+    if r.status_code != 200:
+        return None
+    return r.json()
+
+        
+@st.experimental_singleton
+def load_animaton(str):
+    lottie_url_type = str
+    lottie_type = load_lottieurl(lottie_url_type)
+    return lottie_type
    
